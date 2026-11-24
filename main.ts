@@ -1,5 +1,6 @@
-// news-image-20261123 — sums up Monday 23 November 2026 world news in one image.
-// Node 22, standard library only, no network. Draws a 1024x1024 PNG to /output/entry.png.
+// news-image-20261123 — ROUND 2 resubmission: sums up Tuesday 24 November 2026
+// world news in one image. Written fresh in this session (24 Nov 2026).
+// Node 22, standard library only, no network. Draws a 1024x1024 PNG.
 // Deterministic: no clock, no randomness, fixed palette — two runs write identical bytes.
 import * as fs from "node:fs";
 import * as path from "node:path";
@@ -15,6 +16,7 @@ const WHITE: RGB = [255, 255, 255];
 const INK: RGB = [26, 26, 26];
 const NAVY: RGB = [16, 35, 63];
 const GOLD: RGB = [201, 162, 39];
+const BRONZE: RGB = [122, 84, 20];
 const CARD_BORDER: RGB = [216, 210, 196];
 const MUTED: RGB = [110, 104, 90];
 const SKY: RGB = [127, 179, 213];
@@ -28,7 +30,11 @@ const ORANGE: RGB = [217, 93, 30];
 const FLAME: RGB = [232, 106, 28];
 const FLAMEY: RGB = [242, 194, 0];
 const STEEL: RGB = [138, 141, 145];
+const SLATE: RGB = [74, 74, 82];
 const RUBBLE: RGB = [150, 148, 140];
+const BARREL: RGB = [52, 58, 64];
+const BARREL_TOP: RGB = [88, 96, 104];
+const WOOD: RGB = [96, 64, 32];
 
 // ---------- PNG encoder ----------
 const CRC_TABLE: number[] = (() => {
@@ -214,6 +220,7 @@ const FONT: Record<string, string[]> = {
   "/": ["00001", "00010", "00010", "00100", "01000", "01000", "10000"],
   "%": ["11001", "11010", "00010", "00100", "01000", "01011", "10011"],
   "+": ["00000", "00100", "00100", "11111", "00100", "00100", "00000"],
+  "$": ["00100", "01111", "10100", "01110", "00101", "11110", "00100"],
 };
 
 function textWidth(s: string, scale: number): number {
@@ -237,95 +244,96 @@ function drawTextCentered(cv: Canvas, s: string, cx: number, y: number, scale: n
   drawText(cv, s, cx - Math.floor(textWidth(s, scale) / 2), y, scale, c);
 }
 
-// ---------- story icons (centered on cx, cy) ----------
-function iconCop31(cv: Canvas, cx: number, cy: number): void {
-  // globe
-  cv.fillCircle(cx - 42, cy, 56, SKY);
-  cv.circle(cx - 42, cy, 56, 3, INK);
-  cv.fillCircle(cx - 62, cy - 18, 15, LEAF);
-  cv.fillCircle(cx - 28, cy + 12, 18, LEAF);
-  cv.fillCircle(cx - 48, cy + 30, 11, LEAF);
-  // meridian lines
-  cv.line(cx - 42, cy - 56, cx - 42, cy + 56, 2, INK);
-  cv.line(cx - 98, cy, cx + 14, cy, 2, INK);
-  // thermometer, rising heat
-  cv.fillRect(cx + 52, cy - 52, 16, 78, WHITE);
-  cv.strokeRect(cx + 52, cy - 52, 16, 78, 3, INK);
-  cv.fillRect(cx + 55, cy - 18, 10, 41, RED);
-  cv.fillCircle(cx + 60, cy + 32, 13, RED);
-  cv.circle(cx + 60, cy + 32, 13, 3, INK);
-  // red up arrow above the globe
-  cv.line(cx + 92, cy - 20, cx + 92, cy - 58, 5, RED);
-  cv.fillTriangle(cx + 80, cy - 52, cx + 104, cy - 52, cx + 92, cy - 72, RED);
+function drawTextRight(cv: Canvas, s: string, right: number, y: number, scale: number, c: RGB): void {
+  drawText(cv, s, right - textWidth(s, scale), y, scale, c);
 }
 
-function iconHormuz(cv: Canvas, cx: number, cy: number): void {
-  // explosion burst above the ship
-  cv.fillCircle(cx + 78, cy - 52, 15, FLAMEY);
-  cv.fillTriangle(cx + 78, cy - 78, cx + 66, cy - 52, cx + 90, cy - 52, ORANGE);
-  cv.fillTriangle(cx + 78, cy - 26, cx + 66, cy - 52, cx + 90, cy - 52, ORANGE);
-  cv.fillTriangle(cx + 52, cy - 52, cx + 78, cy - 64, cx + 78, cy - 40, ORANGE);
-  cv.fillTriangle(cx + 104, cy - 52, cx + 78, cy - 64, cx + 78, cy - 40, ORANGE);
-  // funnel
-  cv.fillRect(cx - 58, cy - 34, 28, 40, INK);
-  // bridge tower
-  cv.fillRect(cx + 18, cy - 38, 44, 44, WHITE);
-  cv.strokeRect(cx + 18, cy - 38, 44, 44, 3, INK);
-  cv.fillRect(cx + 26, cy - 30, 10, 8, BLUE);
-  cv.fillRect(cx + 42, cy - 30, 10, 8, BLUE);
+// ---------- story icons (centered on cx, cy) ----------
+function iconOil(cv: Canvas, cx: number, cy: number): void {
+  // oil barrel, left
+  const bx = cx - 88;
+  const by = cy - 46;
+  cv.fillRect(bx, by, 78, 92, BARREL);
+  cv.strokeRect(bx, by, 78, 92, 3, INK);
+  cv.fillRect(bx, by, 78, 12, BARREL_TOP);
+  cv.fillRect(bx, by + 30, 78, 4, INK);
+  cv.fillRect(bx, by + 58, 78, 4, INK);
+  drawTextCentered(cv, "OIL", bx + 39, by + 40, 2, WHITE);
+  // big red down arrow, right
+  const ax = cx + 52;
+  cv.fillRect(ax - 7, cy - 56, 14, 72, RED);
+  cv.fillTriangle(ax - 22, cy + 16, ax + 22, cy + 16, ax, cy + 58, RED);
+  cv.line(ax - 7, cy - 56, ax - 7, cy + 16, 2, DARKRED);
+  cv.line(ax + 7, cy - 56, ax + 7, cy + 16, 2, DARKRED);
+}
+
+function iconAwacs(cv: Canvas, cx: number, cy: number): void {
+  // tail fin
+  cv.fillTriangle(cx - 104, cy - 6, cx - 104, cy - 50, cx - 72, cy - 6, WHITE);
+  cv.line(cx - 104, cy - 6, cx - 104, cy - 50, 3, INK);
+  cv.line(cx - 104, cy - 50, cx - 72, cy - 6, 3, INK);
+  // radar dome on top
+  cv.fillCircle(cx - 8, cy - 26, 19, WHITE);
+  cv.circle(cx - 8, cy - 26, 19, 3, INK);
+  cv.fillRect(cx - 16, cy - 12, 16, 8, STEEL);
+  // fuselage
+  cv.fillRect(cx - 104, cy - 6, 196, 26, WHITE);
+  cv.strokeRect(cx - 104, cy - 6, 196, 26, 3, INK);
+  // nose
+  cv.fillTriangle(cx + 92, cy - 6, cx + 118, cy + 7, cx + 92, cy + 20, WHITE);
+  cv.line(cx + 92, cy - 6, cx + 118, cy + 7, 3, INK);
+  cv.line(cx + 118, cy + 7, cx + 92, cy + 20, 3, INK);
+  // windows
+  for (let i = 0; i < 5; i++) {
+    cv.fillRect(cx - 78 + i * 20, cy + 2, 9, 9, BLUE);
+  }
+  // swept wing below
+  cv.fillTriangle(cx - 34, cy + 20, cx + 8, cy + 20, cx - 12, cy + 56, WHITE);
+  cv.line(cx - 34, cy + 20, cx - 12, cy + 56, 3, INK);
+  cv.line(cx + 8, cy + 20, cx - 12, cy + 56, 3, INK);
+  // radar waves above the dome
+  cv.line(cx - 40, cy - 52, cx - 30, cy - 62, 3, GOLD);
+  cv.line(cx - 30, cy - 62, cx - 20, cy - 52, 3, GOLD);
+  cv.line(cx + 6, cy - 56, cx + 16, cy - 66, 3, GOLD);
+  cv.line(cx + 16, cy - 66, cx + 26, cy - 56, 3, GOLD);
+}
+
+function iconShips(cv: Canvas, cx: number, cy: number): void {
+  // smoke puffs
+  cv.fillCircle(cx + 18, cy - 58, 11, STEEL);
+  cv.fillCircle(cx + 82, cy - 62, 9, RUBBLE);
+  cv.fillCircle(cx + 52, cy - 68, 8, STEEL);
+  // explosion burst above the deck
+  cv.fillCircle(cx + 58, cy - 42, 14, FLAMEY);
+  cv.fillTriangle(cx + 58, cy - 66, cx + 46, cy - 42, cx + 70, cy - 42, ORANGE);
+  cv.fillTriangle(cx + 58, cy - 18, cx + 46, cy - 42, cx + 70, cy - 42, ORANGE);
+  cv.fillTriangle(cx + 34, cy - 42, cx + 58, cy - 54, cx + 58, cy - 30, ORANGE);
+  cv.fillTriangle(cx + 82, cy - 42, cx + 58, cy - 54, cx + 58, cy - 30, ORANGE);
+  // mast
+  cv.line(cx - 28, cy - 16, cx - 28, cy - 50, 3, INK);
+  cv.fillRect(cx - 36, cy - 50, 16, 6, INK);
+  // superstructure
+  cv.fillRect(cx - 62, cy - 16, 72, 26, [150, 155, 160]);
+  cv.strokeRect(cx - 62, cy - 16, 72, 26, 3, INK);
+  cv.fillRect(cx - 52, cy - 8, 10, 8, NAVY);
+  cv.fillRect(cx - 34, cy - 8, 10, 8, NAVY);
+  // deck flames
+  cv.fillTriangle(cx - 44, cy + 10, cx - 20, cy + 10, cx - 32, cy - 14, FLAME);
+  cv.fillTriangle(cx + 2, cy + 10, cx + 26, cy + 10, cx + 14, cy - 18, ORANGE);
+  cv.fillCircle(cx - 32, cy - 2, 7, FLAMEY);
+  cv.fillCircle(cx + 14, cy - 4, 8, FLAMEY);
   // hull
-  cv.fillRect(cx - 108, cy + 6, 196, 34, RED);
-  cv.fillTriangle(cx + 88, cy + 6, cx + 118, cy + 6, cx + 88, cy + 40, RED);
-  cv.fillRect(cx - 108, cy + 6, 196, 5, DARKRED);
+  cv.fillRect(cx - 102, cy + 10, 190, 30, SLATE);
+  cv.fillTriangle(cx + 88, cy + 10, cx + 116, cy + 10, cx + 88, cy + 40, SLATE);
+  cv.fillRect(cx - 102, cy + 10, 190, 5, DARKRED);
   // waves
   for (let i = 0; i < 3; i++) {
     const wy = cy + 52 + i * 12;
-    for (let x = cx - 116; x < cx + 116; x += 16) {
+    for (let x = cx - 112; x < cx + 112; x += 16) {
       cv.line(x, wy, x + 8, wy - 5, 3, BLUE);
       cv.line(x + 8, wy - 5, x + 16, wy, 3, BLUE);
     }
   }
-}
-
-function iconMarkets(cv: Canvas, cx: number, cy: number): void {
-  // axes
-  cv.line(cx - 108, cy - 62, cx - 108, cy + 62, 3, INK);
-  cv.line(cx - 108, cy + 62, cx + 112, cy + 62, 3, INK);
-  // falling candles
-  const candles: [number, number, number][] = [
-    [-88, -44, 62],
-    [-28, -18, 44],
-    [32, 8, 30],
-  ];
-  for (const [ox, top, hgt] of candles) {
-    cv.line(cx + ox + 15, top - 14 + cy, cx + ox + 15, top + hgt + 12 + cy, 3, INK);
-    cv.fillRect(cx + ox, cy + top, 30, hgt, DARKRED);
-    cv.strokeRect(cx + ox, cy + top, 30, hgt, 2, INK);
-  }
-  // big down arrow
-  cv.line(cx - 96, cy - 58, cx + 96, cy + 34, 7, RED);
-  cv.fillTriangle(cx + 96, cy + 34, cx + 66, cy + 14, cx + 92, cy + 52, RED);
-}
-
-function iconDemocrats(cv: Canvas, cx: number, cy: number): void {
-  // capitol dome, taller so it reads as a dome above the colonnade
-  cv.fillCircle(cx - 30, cy + 2, 60, BLUE);
-  cv.fillRect(cx - 90, cy + 2, 120, 8, BLUE);
-  cv.fillRect(cx - 96, cy + 16, 132, 26, WHITE);
-  cv.strokeRect(cx - 96, cy + 16, 132, 26, 3, INK);
-  for (let i = 0; i < 4; i++) {
-    cv.fillRect(cx - 84 + i * 32, cy + 18, 10, 22, BLUE);
-  }
-  cv.fillRect(cx + 36, cy + 16, 60, 26, WHITE);
-  cv.strokeRect(cx + 36, cy + 16, 60, 26, 3, INK);
-  // flag pole + flag
-  cv.line(cx - 30, cy - 58, cx - 30, cy - 88, 3, INK);
-  cv.fillTriangle(cx - 30, cy - 88, cx - 30, cy - 70, cx - 2, cy - 79, RED);
-  // ballot check circle
-  cv.fillCircle(cx + 92, cy - 42, 24, LEAF);
-  cv.circle(cx + 92, cy - 42, 24, 3, INK);
-  cv.line(cx + 80, cy - 42, cx + 89, cy - 33, 5, WHITE);
-  cv.line(cx + 89, cy - 33, cx + 106, cy - 54, 5, WHITE);
 }
 
 function iconUkraine(cv: Canvas, cx: number, cy: number): void {
@@ -377,36 +385,77 @@ function iconIndonesia(cv: Canvas, cx: number, cy: number): void {
   cv.fillRect(cx + 28, cy + 10, 20, 16, BLUE);
 }
 
+function iconSummit(cv: Canvas, cx: number, cy: number): void {
+  // three flag poles
+  const poles = [cx - 78, cx, cx + 78];
+  for (const px of poles) {
+    cv.line(px, cy - 58, px, cy + 12, 3, INK);
+  }
+  // US flag (stripes + blue canton), left
+  const ux = cx - 78;
+  for (let i = 0; i < 4; i++) {
+    cv.fillRect(ux, cy - 58 + i * 7, 46, 7, i % 2 === 0 ? RED : WHITE);
+  }
+  cv.fillRect(ux, cy - 58, 19, 14, BLUE);
+  cv.fillRect(ux + 4, cy - 54, 3, 3, WHITE);
+  cv.fillRect(ux + 11, cy - 54, 3, 3, WHITE);
+  cv.fillRect(ux + 4, cy - 48, 3, 3, WHITE);
+  cv.fillRect(ux + 11, cy - 48, 3, 3, WHITE);
+  // China flag (red + yellow star), middle
+  const mx = cx;
+  cv.fillRect(mx, cy - 58, 46, 28, RED);
+  cv.fillCircle(mx + 11, cy - 44, 6, FLAMEY);
+  cv.fillRect(mx + 28, cy - 52, 3, 3, FLAMEY);
+  cv.fillRect(mx + 34, cy - 46, 3, 3, FLAMEY);
+  cv.fillRect(mx + 28, cy - 40, 3, 3, FLAMEY);
+  // Russia flag (white-blue-red tricolour), right
+  const rx = cx + 78;
+  cv.fillRect(rx, cy - 58, 46, 10, WHITE);
+  cv.fillRect(rx, cy - 48, 46, 9, BLUE);
+  cv.fillRect(rx, cy - 39, 46, 9, RED);
+  cv.strokeRect(rx, cy - 58, 46, 28, 2, INK);
+  // round table, dark wood
+  cv.fillRect(cx - 96, cy + 12, 192, 14, WOOD);
+  cv.fillRect(cx - 96, cy + 12, 192, 4, GOLD);
+  cv.fillRect(cx - 60, cy + 26, 10, 26, WOOD);
+  cv.fillRect(cx + 50, cy + 26, 10, 26, WOOD);
+  // gold centrepiece on the table
+  cv.fillCircle(cx, cy + 4, 7, GOLD);
+  cv.circle(cx, cy + 4, 7, 2, INK);
+}
+
 // ---------- layout ----------
 interface Panel {
   kicker: string;
   color: RGB;
   line1: string;
   line2: string;
+  source: string;
   icon: (cv: Canvas, cx: number, cy: number) => void;
 }
 
 const PANELS: Panel[] = [
-  { kicker: "CLIMATE", color: [30, 122, 90], line1: "COP31 TALKS COLLAPSE", line2: "NO CLIMATE DEAL", icon: iconCop31 },
-  { kicker: "MIDDLE EAST", color: RED, line1: "TANKERS HIT IN HORMUZ", line2: "TRUMP WARNS IRAN", icon: iconHormuz },
-  { kicker: "MARKETS", color: DARKRED, line1: "AI FEARS SINK MARKETS", line2: "KOSPI -5%", icon: iconMarkets },
-  { kicker: "UNITED STATES", color: BLUE, line1: "DEMOCRATS WIN HOUSE", line2: "BIGGEST SINCE 1992", icon: iconDemocrats },
-  { kicker: "UKRAINE", color: UKRBLUE, line1: "BOY, 7, PULLED ALIVE", line2: "FROM THE RUBBLE", icon: iconUkraine },
-  { kicker: "INDONESIA", color: ORANGE, line1: "JAVA FACTORY FIRE", line2: "24 DEAD, DOZENS MISSING", icon: iconIndonesia },
+  { kicker: "ENERGY", color: RED, line1: "OIL SINKS TO 3-MONTH LOW", line2: "WTI -3.9% AT $80.17", source: "WSJ", icon: iconOil },
+  { kicker: "NATO", color: BLUE, line1: "NATO AWACS FOR POLAND", line2: "AFTER MISSILES LAND", source: "REUTERS", icon: iconAwacs },
+  { kicker: "RUSSIA", color: SLATE, line1: "TWO RUSSIAN SHIPS HIT", line2: "CORVETTE, FREIGHTER BURN", source: "NAVAL NEWS", icon: iconShips },
+  { kicker: "UKRAINE", color: UKRBLUE, line1: "KYIV REGION HIT AGAIN", line2: "HOMES HIT, PEOPLE MISSING", source: "TOI", icon: iconUkraine },
+  { kicker: "INDONESIA", color: ORANGE, line1: "JAVA FIRE RESCUE GOES ON", line2: "24 DEAD, DOZENS MISSING", source: "TOI", icon: iconIndonesia },
+  { kicker: "SUMMIT", color: BRONZE, line1: "TRUMP, XI, PUTIN MEET", line2: "FIRST-EVER TRILATERAL", source: "WSJ", icon: iconSummit },
 ];
 
 function draw(): Canvas {
   const cv = new Canvas(W, H, PAPER);
-  // header band
-  cv.fillRect(0, 0, W, 148, NAVY);
-  drawTextCentered(cv, "MONDAY 23 NOVEMBER 2026", W / 2, 40, 5, WHITE);
-  drawTextCentered(cv, "THE WORLD IN ONE IMAGE", W / 2, 96, 3, GOLD);
+  // masthead: big nameplate, date, tagline, gold rule
+  cv.fillRect(0, 0, W, 154, NAVY);
+  drawTextCentered(cv, "THE WORLD", W / 2, 26, 7, WHITE);
+  drawTextCentered(cv, "TUESDAY 24 NOVEMBER 2026", W / 2, 90, 4, GOLD);
+  drawTextCentered(cv, "THE DAY'S WORLD NEWS IN ONE IMAGE", W / 2, 128, 2, WHITE);
   cv.fillRect(0, 148, W, 6, GOLD);
   // grid of panels
   const px = [16, 518];
-  const py = [166, 448, 730];
+  const py = [168, 448, 728];
   const pw = 490;
-  const ph = 270;
+  const ph = 268;
   for (let i = 0; i < 6; i++) {
     const x = px[i % 2];
     const y = py[Math.floor(i / 2)];
@@ -414,13 +463,15 @@ function draw(): Canvas {
     cv.fillRect(x, y, pw, ph, WHITE);
     cv.strokeRect(x, y, pw, ph, 2, CARD_BORDER);
     cv.fillRect(x, y, pw, 36, p.color);
+    cv.fillRect(x, y + 36, pw, 3, GOLD);
     drawText(cv, p.kicker, x + 14, y + 11, 2, WHITE);
-    p.icon(cv, x + pw / 2, y + 113);
-    drawText(cv, p.line1, x + 14, y + 202, 3, INK);
-    drawText(cv, p.line2, x + 14, y + 230, 3, INK);
+    p.icon(cv, x + pw / 2, y + 108);
+    drawText(cv, p.line1, x + 14, y + 200, 3, INK);
+    drawText(cv, p.line2, x + 14, y + 228, 3, INK);
+    drawTextRight(cv, p.source, x + pw - 14, y + 254, 1, MUTED);
   }
-  // footer
-  drawTextCentered(cv, "DRAWN FROM THE DAY'S REPORTS - BBC - REUTERS - AL JAZEERA", W / 2, 1006, 2, MUTED);
+  // footer: source credits, clear of the panels
+  drawTextCentered(cv, "DRAWN FROM THE DAY'S REPORTS - WSJ - REUTERS - LE MONDE - TOI - NAVAL NEWS", W / 2, 1004, 2, MUTED);
   return cv;
 }
 
